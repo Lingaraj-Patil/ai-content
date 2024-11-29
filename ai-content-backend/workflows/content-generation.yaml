@@ -1,0 +1,42 @@
+id: content-generation
+namespace: ai-content
+inputs:
+  - id: topic
+    type: STRING
+    required: true
+  - id: tone
+    type: STRING
+    required: true
+  - id: style
+    type: STRING
+    required: true
+
+tasks:
+  - id: validate-input
+    type: io.kestra.core.tasks.scripts.Bash
+    commands:
+      - 'echo "Generating content for topic: {{ inputs.topic }}"'
+  
+  - id: call-api
+    type: io.kestra.plugin.core.http.Request
+    uri: "{{env.API_BASE_URL}}"
+    method: "POST"
+    headers:
+      Content-Type: application/json
+      Authorization: "Bearer {{env.API_KEY}}"
+    body: |
+      {
+        "model": "{{env.MODEL_NAME}}",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a content generator. Create content based on the given topic, tone, and style."
+          },
+          {
+            "role": "user",
+            "content": "Generate content with the following parameters:\nTopic: {{ inputs.topic }}\nTone: {{ inputs.tone }}\nStyle: {{ inputs.style }}"
+          }
+        ],
+        "temperature": {{env.TEMPERATURE}},
+        "max_tokens": {{env.MAX_TOKENS}}
+      }
